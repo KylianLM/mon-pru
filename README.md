@@ -37,7 +37,7 @@ pnpm dev
 
 ## Prérequis
 
-- [Node.js](https://nodejs.org/) (version >=20)
+- [Node.js](https://nodejs.org/) (version >=18)
 - [pnpm](https://pnpm.io/installation) (npm install -g pnpm)
 
 ## Contribution 🤝
