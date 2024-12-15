@@ -1,5 +1,16 @@
 # Mon PRU - Calculateur de Prix de Revient Unitaire 📈
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/KylianLM/mon-pru/deploy.yml?branch=main)](https://github.com/KylianLM/mon-pru/actions)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fkylianlm.github.io%2Fmon-pru%2F)](https://kylianlm.github.io/mon-pru/)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/KylianLM/mon-pru)
+![Vue Version](https://img.shields.io/badge/vue-3.2-brightgreen)
+![Tailwind CSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?logo=tailwind-css&logoColor=white)
+[![GitHub last commit](https://img.shields.io/github/last-commit/KylianLM/mon-pru)](https://github.com/KylianLM/mon-pru/commits)
+[![GitHub issues](https://img.shields.io/github/issues/KylianLM/mon-pru)](https://github.com/KylianLM/mon-pru/issues)
+[![GitHub stars](https://img.shields.io/github/stars/KylianLM/mon-pru)](https://github.com/KylianLM/mon-pru/stargazers)
+![GitHub top language](https://img.shields.io/github/languages/top/KylianLM/mon-pru)
+
 Un outil web simple et efficace pour calculer votre Prix de Revient Unitaire (PRU) sur vos investissements en actions.
 
 ## Fonctionnalités 🎯
