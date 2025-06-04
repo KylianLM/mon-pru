@@ -26,7 +26,7 @@
                     </button>
                 </div>
 
-                <div class="grid gap-4 md:grid-cols-3">
+                <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
                     <div>
                         <label class="block text-sm font-medium mb-2">Date</label>
                         <input type="date" v-model="transaction.date" :class="[
@@ -50,6 +50,27 @@
                             store.isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
                         ]" placeholder="Ex: 10" />
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Frais fixes (€)</label>
+                        <input type="number" v-model="transaction.fixedFees" step="0.01" :class="[
+                            'w-full rounded-md shadow-sm',
+                            store.isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
+                        ]" placeholder="Ex: 1.95" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Frais (%)</label>
+                        <input type="number" v-model="transaction.percentageFees" step="0.01" :class="[
+                            'w-full rounded-md shadow-sm',
+                            store.isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
+                        ]" placeholder="Ex: 0.5" />
+                    </div>
+                </div>
+
+                <!-- Affichage des frais calculés pour chaque transaction -->
+                <div v-if="(transaction.fixedFees && parseFloat(transaction.fixedFees) > 0) || (transaction.percentageFees && parseFloat(transaction.percentageFees) > 0)"
+                    class="mt-3 p-2 rounded text-sm" :class="store.isDarkMode ? 'bg-gray-600' : 'bg-gray-100'">
+                    <span class="font-medium">Frais de cette transaction: </span>
+                    <span>{{ formatPrice(calculateTransactionFees(transaction)) }}€</span>
                 </div>
             </div>
         </div>
@@ -63,8 +84,9 @@
         </button>
 
         <!-- Résultats -->
-        <div v-if="store.newPRU" class="mt-8 space-y-6">
-            <div class="grid gap-4 md:grid-cols-3">
+        <div v-if="store.newPRU || store.currentSimulation.transactions.length > 1" class="mt-8 space-y-6">
+            <!-- Résultats principaux -->
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div :class="[
                     'p-4 rounded-lg',
                     store.isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
@@ -86,6 +108,16 @@
                     'p-4 rounded-lg',
                     store.isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
                 ]">
+                    <dt class="text-sm font-medium mb-1">PRU sans frais</dt>
+                    <dd class="text-2xl font-semibold text-blue-500">
+                        {{ formatPrice(store.newPRUWithoutFees) }}€
+                    </dd>
+                </div>
+
+                <div :class="[
+                    'p-4 rounded-lg',
+                    store.isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+                ]">
                     <dt class="text-sm font-medium mb-1">Total actions</dt>
                     <dd class="text-2xl font-semibold">
                         {{ formatNumber(store.totalShares) }}
@@ -100,6 +132,40 @@
                     <dd class="text-2xl font-semibold">
                         {{ formatPrice(store.totalInvestment) }}€
                     </dd>
+                </div>
+            </div>
+
+            <!-- Impact des frais -->
+            <div :class="[
+                'p-4 rounded-lg border-l-4 border-orange-500',
+                store.isDarkMode ? 'bg-orange-900/20' : 'bg-orange-50'
+            ]">
+                <h3 class="text-lg font-medium mb-2">Impact des frais</h3>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <span class="text-sm" :class="store.isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+                            Total des frais
+                        </span>
+                        <p class="text-xl font-semibold text-orange-600">
+                            {{ formatPrice(store.totalFeesAmount) }}€
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-sm" :class="store.isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+                            Impact sur le coût
+                        </span>
+                        <p class="text-xl font-semibold text-orange-600">
+                            +{{ store.feesImpactPercentage.toFixed(2) }}%
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-sm" :class="store.isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+                            Différence PRU
+                        </span>
+                        <p class="text-xl font-semibold text-orange-600">
+                            +{{ formatPrice(store.newPRU - store.newPRUWithoutFees) }}€
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -219,7 +285,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="mt-2 grid gap-4 md:grid-cols-3">
+                    <div class="mt-2 grid gap-4 md:grid-cols-4">
                         <div>
                             <span class="text-sm" :class="store.isDarkMode ? 'text-gray-400' : 'text-gray-500'">
                                 PRU
@@ -244,6 +310,14 @@
                                 {{ formatPrice(sim.result.totalInvestment) }}€
                             </p>
                         </div>
+                        <div>
+                            <span class="text-sm" :class="store.isDarkMode ? 'text-gray-400' : 'text-gray-500'">
+                                Frais
+                            </span>
+                            <p class="text-lg font-semibold text-orange-600">
+                                {{ formatPrice(sim.result.totalFees || 0) }}€
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -266,12 +340,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePruStore } from '../stores/pru'
 import PRUChart from './PRUChart.vue'
 
 const store = usePruStore()
 const showShareSuccess = ref(false)
+
+// Initialiser le store au montage du composant
+onMounted(() => {
+    store.init()
+})
+
+function calculateTransactionFees(transaction) {
+    const transactionAmount = transaction.type === 'initial'
+        ? parseFloat(transaction.pru) * parseFloat(transaction.shares)
+        : parseFloat(transaction.price) * parseFloat(transaction.shares);
+
+    const fixedFees = parseFloat(transaction.fixedFees) || 0;
+    const percentageFees = ((parseFloat(transaction.percentageFees) || 0) / 100) * transactionAmount;
+
+    return fixedFees + percentageFees;
+}
 
 async function sharePotentialGain() {
     const success = await store.shareResults()
